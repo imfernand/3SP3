@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1a14">
+<title>Painel Uniport</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<style>
+  :root {
+    --bg: #0f1a14; --card: #17271e; --line: #2a4335; --txt: #e8f3ec; --dim: #8fa89a;
+    --ok: #4ade80; --warn: #fbbf24; --bad: #f87171; --acc: #38bdf8;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg: #f2f6f3; --card: #ffffff; --line: #cfdcd3; --txt: #14231b; --dim: #567062;
+            --ok: #15803d; --warn: #b45309; --bad: #b91c1c; --acc: #0369a1; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--txt);
+    font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body { padding: 0 16px calc(24px + env(safe-area-inset-bottom)); max-width: 960px; margin: 0 auto; }
+  header { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between;
+    padding: calc(12px + env(safe-area-inset-top)) 0 10px; }
+  h1 { font-size: 20px; margin: 0; }
+  h2 { font-size: 13px; margin: 22px 0 8px; color: var(--dim); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  button, select, input { font: inherit; color: var(--txt); background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; padding: 9px 14px; min-height: 40px; }
+  button { cursor: pointer; }
+  button:active { transform: translateY(1px); }
+  button.on { border-color: var(--ok); color: var(--ok); }
+  button.pri { background: var(--acc); border-color: var(--acc); color: #06202c; font-weight: 600; }
+  input { min-width: 0; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid var(--line);
+    border-radius: 999px; font-size: 13px; color: var(--dim); background: var(--card); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--dim); }
+  .dot.ok { background: var(--ok); } .dot.bad { background: var(--bad); } .dot.warn { background: var(--warn); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+  .tile .nm { font-size: 13px; color: var(--dim); }
+  .tile .vl { font-size: 38px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .tile .un { font-size: 14px; color: var(--dim); margin-left: 4px; font-weight: 400; }
+  .tile.stale .vl { color: var(--dim); opacity: .55; }
+  .empty { color: var(--dim); padding: 14px; border: 1px dashed var(--line); border-radius: 12px; }
+  table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-size: 14px; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { color: var(--dim); font-weight: 600; font-size: 12px; }
+  tr:last-child td { border-bottom: 0; }
+  .badge { padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .badge.a { background: color-mix(in srgb, var(--bad) 22%, transparent); color: var(--bad); }
+  .badge.i { background: color-mix(in srgb, var(--dim) 22%, transparent); color: var(--dim); }
+  details { margin-top: 20px; }
+  summary { cursor: pointer; color: var(--dim); font-size: 13px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; padding: 6px 0; }
+  pre#log { background: #000; color: #b7f7c8; border-radius: 10px; padding: 10px; height: 240px; overflow: auto;
+    font: 12px/1.35 ui-monospace, Consolas, monospace; margin: 8px 0; white-space: pre-wrap; word-break: break-all; }
+  .form { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin: 8px 0; }
+  .form label { font-size: 12px; color: var(--dim); display: flex; flex-direction: column; gap: 3px; }
+  .form label.chk { flex-direction: row; align-items: center; gap: 6px; font-size: 13px; }
+  .form label.chk input { min-height: 0; width: 18px; height: 18px; }
+  dialog { background: var(--card); color: var(--txt); border: 1px solid var(--line); border-radius: 14px; max-width: 440px; width: calc(100% - 32px); }
+  dialog::backdrop { background: rgba(0,0,0,.55); }
+  dialog label { display: flex; flex-direction: column; gap: 3px; font-size: 13px; color: var(--dim); margin-bottom: 10px; }
+  dialog input { width: 100%; }
+  #toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--card); border: 1px solid var(--line);
+    padding: 10px 16px; border-radius: 10px; display: none; max-width: 90%; z-index: 9; }
+  .muted { color: var(--dim); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Painel Uniport</h1>
+  <div class="row">
+    <button id="btBle">Bluetooth</button>
+    <button id="btNet">Internet</button>
+    <button id="btCfg" title="Configurar internet (MQTT)" aria-label="Configurar internet">⚙</button>
+  </div>
+</header>
+
+<div class="row" id="chips">
+  <span class="chip"><span class="dot" id="dBle"></span>Bluetooth</span>
+  <span class="chip"><span class="dot" id="dNet"></span>Internet</span>
+  <span class="chip"><span class="dot" id="dCan"></span><span id="tCan">CAN: sem dados</span></span>
+  <span class="chip" id="tAge">—</span>
+</div>
+
+<h2>Sinais</h2>
+<div class="grid" id="tiles"></div>
+<div class="empty" id="noSig">Nenhum sinal cadastrado ainda. Abra <b>Ferramentas</b> e toque em <b>Preset J1939</b>, ou cadastre um sinal.</div>
+
+<h2>Falhas (DM1)</h2>
+<div id="dtcBox"></div>
+
+<details>
+  <summary>Ferramentas</summary>
+
+  <h2>Descobrir sinais</h2>
+  <div class="row">
+    <button data-cmd="STATUS">Status</button>
+    <button data-cmd="LIST">Listar sinais</button>
+    <button data-cmd="FALHAS">Falhas</button>
+    <button data-cmd="PRESET J1939">Preset J1939</button>
+    <button data-cmd="ZERAR">Zerar tabela</button>
+    <button data-cmd="IDS">Todos os IDs</button>
+    <button data-cmd="MARCA">1. Marcar</button>
+    <button data-cmd="DIFF">2. O que mudou</button>
+  </div>
+  <p class="muted">Receita: toque <b>Marcar</b> com a máquina estável, mude a dose ou o modo de trabalho na cabine e toque <b>O que mudou</b>. O ID que aparecer com <i>bytes=…</i> é o candidato.</p>
+
+  <h2>Cadastrar sinal</h2>
+  <form class="form" id="frm">
+    <label>Nome<input name="nome" required maxlength="13" placeholder="vazao" autocapitalize="none"></label>
+    <label>Unidade<input name="unid" required maxlength="7" placeholder="L/ha" value="-"></label>
+    <label>ID (hex)<input name="id" required placeholder="18FF1234" autocapitalize="characters"></label>
+    <label>Byte inicial (0-7)<input name="byte" type="number" min="0" max="7" value="0" required></label>
+    <label>Nº de bytes (1-4)<input name="n" type="number" min="1" max="4" value="2" required></label>
+    <label>Escala<input name="esc" inputmode="decimal" value="1" required></label>
+    <label>Offset<input name="off" inputmode="decimal" value="0" required></label>
+    <label class="chk"><input type="checkbox" name="S">com sinal</label>
+    <label class="chk"><input type="checkbox" name="B">big-endian</label>
+    <label class="chk"><input type="checkbox" name="R">valor bruto</label>
+    <label class="chk"><input type="checkbox" name="M">qualquer origem</label>
+    <button class="pri" type="submit">Cadastrar</button>
+  </form>
+  <p class="muted"><b>Qualquer origem</b> ignora prioridade e endereço do módulo (útil em IDs J1939). <b>Valor bruto</b> desliga a regra "FF = indisponível".</p>
+
+  <h2>Console</h2>
+  <pre id="log"></pre>
+  <form class="row" id="frmCmd">
+    <input id="cmd" placeholder="AJUDA" autocomplete="off" autocapitalize="characters" style="flex:1">
+    <button type="submit">Enviar</button>
+    <button type="button" id="btDemo">Demo</button>
+  </form>
+</details>
+
+<dialog id="dlg">
+  <form method="dialog" id="frmCfg">
+    <h2 style="margin-top:0">Internet (MQTT)</h2>
+    <label>URL WebSocket seguro<input id="cUrl" placeholder="wss://xxxx.s1.eu.hivemq.cloud:8884/mqtt" autocapitalize="none"></label>
+    <label>Usuário<input id="cUser" autocapitalize="none"></label>
+    <label>Senha<input id="cPass" type="password"></label>
+    <label>Código da máquina<input id="cMaq" placeholder="uniport01" autocapitalize="none"></label>
+    <p class="muted">Use no celular um usuário do broker só com permissão de leitura do estado e envio de comandos. Os dados ficam guardados só neste aparelho.</p>
+    <div class="row"><button class="pri" value="ok">Salvar</button><button value="cancel">Cancelar</button></div>
+  </form>
+</dialog>
+
+<div id="toast"></div>
+
+<script src="falhas-motor.js"></script>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const NUS = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+const NUS_RX = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
+const NUS_TX = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
+const FMI = {0:'acima do normal (grave)',1:'abaixo do normal (grave)',2:'erro/intermitente',3:'tensão alta / curto p/ +',
+  4:'tensão baixa / curto p/ -',5:'corrente baixa / circuito aberto',6:'corrente alta / curto p/ terra',
+  7:'sistema mecânico não responde',8:'frequência/pulso anormal',9:'taxa de atualização anormal',
+  10:'variação anormal',11:'causa desconhecida',12:'dispositivo com defeito',13:'fora de calibração',
+  14:'instrução especial',15:'acima do normal (leve)',16:'acima do normal (moderado)',17:'abaixo do normal (leve)',
+  18:'abaixo do normal (moderado)',19:'dado de rede inválido',20:'dado derivou p/ cima',21:'dado derivou p/ baixo',
+  31:'condição existe'};
+
+let cfg = {url:'', user:'', pass:'', maq:'uniport01'};
+try { Object.assign(cfg, JSON.parse(localStorage.getItem('uniport-cfg') || '{}')); } catch (e) {}
+
+const st = { ble: null, bleRx: null, bleWant: false, mq: null, lastRx: 0, src: '', units: {}, demo: null, buf: '' };
+
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.style.display = 'block';
+  clearTimeout(toast.h); toast.h = setTimeout(() => t.style.display = 'none', 3500);
+}
+function log(line) {
+  const el = $('#log'); const atEnd = el.scrollTop + el.clientHeight >= el.scrollHeight - 8;
+  el.textContent += line + '\n';
+  if (el.textContent.length > 20000) el.textContent = el.textContent.slice(-12000);
+  if (atEnd) el.scrollTop = el.scrollHeight;
+}
+function setDot(id, cls) { $(id).className = 'dot ' + (cls || ''); }
+
+/* ---------- linhas vindas do ESP (Bluetooth ou internet) ---------- */
+function onLine(line, src) {
+  line = line.trim(); if (!line) return;
+  if (line[0] === '{') {
+    let j; try { j = JSON.parse(line); } catch (e) { return; }
+    st.lastRx = Date.now(); st.src = src;
+    render(j);
+    return;
+  }
+  const m = /^SIG (\S+) (\S+) /.exec(line);
+  if (m) { st.units[m[1]] = m[2] === '-' ? '' : m[2]; if (st.last) render(st.last); }
+  log(line);
+  if (/^OK (sinal|removido|preset|sinais removidos)/.test(line)) send('LIST', true);
+}
+function feed(text, src) {                      // remonta linhas fatiadas pelo BLE
+  st.buf += text;
+  let i;
+  while ((i = st.buf.indexOf('\n')) >= 0) { onLine(st.buf.slice(0, i), src); st.buf = st.buf.slice(i + 1); }
+  if (st.buf.length > 4000) st.buf = '';
+}
+
+/* ---------- tela ---------- */
+const tiles = new Map();
+function fmt(v) {
+  if (v === null || v === undefined) return '—';
+  const a = Math.abs(v);
+  return v.toLocaleString('pt-BR', { maximumFractionDigits: a >= 1000 ? 0 : a >= 100 ? 1 : 2 });
+}
+function render(j) {
+  st.last = j;
+  const names = Object.keys(j.s || {});
+  $('#noSig').style.display = names.length ? 'none' : 'block';
+  for (const [n, el] of tiles) if (!names.includes(n)) { el.root.remove(); tiles.delete(n); }
+  for (const n of names) {
+    let el = tiles.get(n);
+    if (!el) {
+      const root = document.createElement('div'); root.className = 'tile';
+      root.innerHTML = '<div class="nm"></div><div><span class="vl"></span><span class="un"></span></div>';
+      $('#tiles').appendChild(root);
+      el = { root, nm: root.children[0], vl: root.querySelector('.vl'), un: root.querySelector('.un') };
+      el.nm.textContent = n; tiles.set(n, el);
+    }
+    const v = j.s[n];
+    el.vl.textContent = fmt(v);
+    el.un.textContent = v === null ? '' : (st.units[n] || '');
+    el.root.classList.toggle('stale', v === null);
+  }
+  const b = j.b || {};
+  const can = $('#tCan');
+  if (!b.k) { can.textContent = 'CAN: procurando velocidade…'; setDot('#dCan', 'warn'); }
+  else {
+    can.textContent = `CAN ${b.k} kbps · ${b.rx} quadros · ${b.id} IDs · erros ${b.er}` + (b.pd ? ` · perdidos ${b.pd}` : '');
+    setDot('#dCan', b.er > 50 && b.rx < 100 ? 'bad' : 'ok');
+  }
+  renderDtc(j.d || []);
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// Tabela do motor Cummins ECM850 (manual UP4530, secao 6). So vale para o modulo do motor.
+function descFalha(d) {
+  const t = (window.FALHAS_MOTOR || {})[d.spn + '-' + d.fmi];
+  if (!t) return '';
+  const l = Array.isArray(t) ? t : [t];
+  const cods = l.map(x => x.cod).filter(x => x && x !== '-').join(' / ');
+  const quem = d.sa === 0 ? 'Motor' : 'Tabela do motor (confirme o módulo)';
+  return `<div class="muted"><b>${quem}${cods ? ' · cód. ' + esc(cods) : ''}</b>: ${esc(l[0].desc || l[0].res)}</div>`;
+}
+function renderDtc(list) {
+  const box = $('#dtcBox');
+  if (!list.length) { box.innerHTML = '<div class="empty">Nenhuma falha recebida desde que o ESP ligou.</div>'; return; }
+  list.sort((a, b) => b.a - a.a || a.sa - b.sa || a.spn - b.spn);
+  let h = '<table><thead><tr><th>Módulo</th><th>SPN</th><th>FMI</th><th>Ocorr.</th><th></th></tr></thead><tbody>';
+  for (const d of list) {
+    h += `<tr><td>0x${d.sa.toString(16).toUpperCase().padStart(2, '0')} (${d.sa})</td><td>${d.spn}</td>` +
+         `<td>${d.fmi} <span class="muted">${FMI[d.fmi] || ''}</span>${descFalha(d)}</td><td>${d.oc}</td>` +
+         `<td><span class="badge ${d.a ? 'a' : 'i'}">${d.a ? 'ativa' : 'inativa'}</span></td></tr>`;
+  }
+  box.innerHTML = h + '</tbody></table>';
+}
+setInterval(() => {
+  const age = st.lastRx ? (Date.now() - st.lastRx) / 1000 : null;
+  const el = $('#tAge');
+  if (age === null) { el.textContent = 'sem dados'; return; }
+  el.textContent = age < 4 ? `ao vivo via ${st.src}` : `sem dados há ${Math.round(age)} s`;
+  document.body.style.opacity = age > 8 ? .75 : 1;
+}, 500);
+
+/* ---------- envio de comandos ---------- */
+async function send(cmd, quiet) {
+  if (st.demo) { demoCmd(cmd); return; }
+  if (!quiet) log('> ' + cmd);
+  if (st.bleRx) {
+    try {
+      const data = new TextEncoder().encode(cmd + '\n');
+      for (let i = 0; i < data.length; i += 20) {
+        const part = data.slice(i, i + 20);
+        if (st.bleRx.writeValueWithoutResponse) await st.bleRx.writeValueWithoutResponse(part);
+        else await st.bleRx.writeValue(part);
+      }
+      return;
+    } catch (e) { toast('Falha ao enviar pelo Bluetooth'); }
+  }
+  if (st.mq && st.mq.connected) { st.mq.publish(`uniport/${cfg.maq}/cmd`, cmd); return; }
+  toast('Conecte o Bluetooth ou a internet primeiro');
+}
+
+/* ---------- Bluetooth ---------- */
+async function bleConnect() {
+  if (!navigator.bluetooth) { toast('Este navegador não tem Web Bluetooth. Use o Chrome no Android.'); return; }
+  let dev;
+  try { dev = await navigator.bluetooth.requestDevice({ filters: [{ services: [NUS] }] }); }
+  catch (e) { if (e.name !== 'NotFoundError') toast('Bluetooth: ' + e.message); return; }
+  st.ble = dev; st.bleWant = true;
+  dev.addEventListener('gattserverdisconnected', onBleDrop);
+  await bleOpen();
+}
+async function bleOpen() {
+  try {
+    setDot('#dBle', 'warn');
+    const srv = await st.ble.gatt.connect();
+    const svc = await srv.getPrimaryService(NUS);
+    st.bleRx = await svc.getCharacteristic(NUS_RX);
+    const tx = await svc.getCharacteristic(NUS_TX);
+    await tx.startNotifications();
+    const dec = new TextDecoder();
+    tx.addEventListener('characteristicvaluechanged', e => feed(dec.decode(e.target.value), 'Bluetooth'));
+    setDot('#dBle', 'ok'); $('#btBle').classList.add('on'); $('#btBle').textContent = 'Bluetooth ✓';
+    st.buf = '';
+    send('LIST', true);
+  } catch (e) { onBleDrop(); }
+}
+function onBleDrop() {
+  st.bleRx = null; setDot('#dBle', st.bleWant ? 'warn' : '');
+  if (!st.bleWant) return;
+  clearTimeout(onBleDrop.h);
+  onBleDrop.h = setTimeout(() => { if (st.bleWant && st.ble) bleOpen(); }, 2500);   // reconecta sozinho
+}
+function bleDisconnect() {
+  st.bleWant = false; clearTimeout(onBleDrop.h);
+  try { st.ble && st.ble.gatt.connected && st.ble.gatt.disconnect(); } catch (e) {}
+  st.bleRx = null; st.ble = null; setDot('#dBle', ''); $('#btBle').classList.remove('on'); $('#btBle').textContent = 'Bluetooth';
+}
+
+/* ---------- Internet (MQTT por WebSocket) ---------- */
+function loadMqtt() {
+  if (window.mqtt) return Promise.resolve();
+  return new Promise((ok, err) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/mqtt@5/dist/mqtt.min.js';
+    s.onload = ok; s.onerror = () => err(new Error('sem internet para carregar a biblioteca'));
+    document.head.appendChild(s);
+  });
+}
+async function netConnect() {
+  if (!cfg.url) { $('#dlg').showModal(); return; }
+  try { await loadMqtt(); } catch (e) { toast(e.message); return; }
+  setDot('#dNet', 'warn');
+  const c = st.mq = window.mqtt.connect(cfg.url, {
+    username: cfg.user || undefined, password: cfg.pass || undefined,
+    clientId: 'painel-' + Math.random().toString(16).slice(2, 10),
+    reconnectPeriod: 3000, connectTimeout: 8000, keepalive: 30, clean: true });
+  c.on('connect', () => {
+    setDot('#dNet', 'ok'); $('#btNet').classList.add('on'); $('#btNet').textContent = 'Internet ✓';
+    c.subscribe([`uniport/${cfg.maq}/estado`, `uniport/${cfg.maq}/resp`, `uniport/${cfg.maq}/status`]);
+    if (!st.bleRx) send('LIST', true);
+  });
+  c.on('reconnect', () => setDot('#dNet', 'warn'));
+  c.on('offline', () => setDot('#dNet', 'warn'));
+  c.on('error', e => { toast('MQTT: ' + e.message); });
+  c.on('message', (topic, payload) => {
+    const t = payload.toString();
+    if (topic.endsWith('/status')) { log('máquina: ' + t); return; }
+    t.split('\n').forEach(l => onLine(l, 'internet'));
+  });
+}
+function netDisconnect() {
+  if (st.mq) { st.mq.end(true); st.mq = null; }
+  setDot('#dNet', ''); $('#btNet').classList.remove('on'); $('#btNet').textContent = 'Internet';
+}
+
+/* ---------- Demo (sem hardware) ---------- */
+function demoCmd(cmd) {
+  log('> ' + cmd);
+  if (/^LIST/i.test(cmd)) { ['vazao L/ha','vel km/h','rpm rpm','pressao bar'].forEach(s => onLine('SIG ' + s + ' 18FF1234 0 2 0.1 0 - M=1FFFFFFF =0', 'demo')); onLine('OK 4 sinais', 'demo'); }
+  else onLine('OK (demo) ' + cmd, 'demo');
+}
+function demoStart() {
+  let k = 0;
+  demoCmd('LIST');
+  st.demo = setInterval(() => {
+    k++;
+    const w = Math.sin(k / 6);
+    const j = { t: k * 1000, b: { k: 250, rx: 4200 + k * 620, er: 0, pd: 0, id: 37 }, u: k, h: 181,
+      s: { vazao: +(82 + w * 4).toFixed(2), vel: +(17.4 + w).toFixed(2), rpm: Math.round(1850 + w * 40),
+           pressao: k % 15 < 3 ? null : +(3.1 + w * .2).toFixed(2) },
+      d: [{ sa: 0x27, spn: 629, fmi: 12, oc: 3, a: 1 }, { sa: 0x00, spn: 110, fmi: 3, oc: 1, a: 0 }, { sa: 0x00, spn: 639, fmi: 9, oc: 2, a: 1 }] };
+    st.lastRx = Date.now(); st.src = 'demo'; render(j);
+  }, 1000);
+  $('#btDemo').classList.add('on');
+}
+function demoStop() { clearInterval(st.demo); st.demo = null; $('#btDemo').classList.remove('on'); }
+
+/* ---------- eventos ---------- */
+$('#btBle').onclick = () => st.bleWant ? bleDisconnect() : bleConnect();
+$('#btNet').onclick = () => st.mq ? netDisconnect() : netConnect();
+$('#btCfg').onclick = () => { $('#cUrl').value = cfg.url; $('#cUser').value = cfg.user; $('#cPass').value = cfg.pass; $('#cMaq').value = cfg.maq; $('#dlg').showModal(); };
+$('#frmCfg').onsubmit = e => {
+  if (e.submitter && e.submitter.value === 'ok') {
+    cfg = { url: $('#cUrl').value.trim(), user: $('#cUser').value.trim(), pass: $('#cPass').value, maq: ($('#cMaq').value.trim() || 'uniport01') };
+    try { localStorage.setItem('uniport-cfg', JSON.stringify(cfg)); } catch (x) {}
+    if (st.mq) { netDisconnect(); netConnect(); }
+  }
+};
+document.querySelectorAll('[data-cmd]').forEach(b => b.onclick = () => send(b.dataset.cmd));
+$('#frmCmd').onsubmit = e => { e.preventDefault(); const v = $('#cmd').value.trim(); if (v) { send(v); $('#cmd').value = ''; } };
+$('#btDemo').onclick = () => st.demo ? demoStop() : demoStart();
+$('#frm').onsubmit = e => {
+  e.preventDefault();
+  const f = new FormData(e.target), g = k => (f.get(k) || '').toString().trim();
+  const id = g('id').replace(/^0x/i, '');
+  if (!/^[0-9a-f]{1,8}$/i.test(id)) { toast('ID deve ser hexadecimal (até 8 dígitos)'); return; }
+  let cmd = `ADD ${g('nome')} ${g('unid') || '-'} ${id} ${g('byte')} ${g('n')} ${g('esc')} ${g('off')}`;
+  if (f.get('S')) cmd += ' S';
+  if (f.get('B')) cmd += ' B';
+  if (f.get('R')) cmd += ' R';
+  if (f.get('M')) cmd += id.length > 3 ? ' M=3FFFF00' : ' M=7FF';
+  send(cmd);
+};
+
+/* ---------- tela ligada + app instalável ---------- */
+try { navigator.wakeLock && navigator.wakeLock.request('screen').catch(() => {}); } catch (e) {}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') try { navigator.wakeLock && navigator.wakeLock.request('screen').catch(() => {}); } catch (e) {}
+});
+if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+renderDtc([]);
+if (new URLSearchParams(location.search).has('demo')) demoStart();
+</script>
+</body>
+</html>
